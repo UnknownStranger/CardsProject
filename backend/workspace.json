@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "projects": {
+    "fflogs": {
+      "root": "apps/fflogs",
+      "sourceRoot": "apps/fflogs/src",
+      "projectType": "application",
+      "prefix": "fflogs",
+      "targets": {
+        "build": {
+          "executor": "@nrwl/node:build",
+          "outputs": [
+            "{options.outputPath}"
+          ],
+          "options": {
+            "outputPath": "dist/apps/fflogs",
+            "main": "apps/fflogs/src/main.ts",
+            "tsConfig": "apps/fflogs/tsconfig.app.json",
+            "assets": [
+              "apps/fflogs/src/assets"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "optimization": true,
+              "extractLicenses": true,
+              "inspect": false,
+              "fileReplacements": [
+                {
+                  "replace": "apps/fflogs/src/environments/environment.ts",
+                  "with": "apps/fflogs/src/environments/environment.prod.ts"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "executor": "@nrwl/node:execute",
+          "options": {
+            "buildTarget": "fflogs:build"
+          }
+        },
+        "lint": {
+          "executor": "@nrwl/linter:eslint",
+          "options": {
+            "lintFilePatterns": [
+              "apps/fflogs/**/*.ts"
+            ]
+          }
+        },
+        "test": {
+          "executor": "@nrwl/jest:jest",
+          "outputs": [
+            "coverage/apps/fflogs"
+          ],
+          "options": {
+            "jestConfig": "apps/fflogs/jest.config.js",
+            "passWithNoTests": true
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "defaultCollection": "@nrwl/nest"
+  },
+  "defaultProject": "fflogs"
+}
