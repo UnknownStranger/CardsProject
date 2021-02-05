@@ -13,7 +13,9 @@ function App() {
   //organizing the data better for iteration and changing ID values to strings for target and ability
   async function parseLogs() {
     const parsedLogs: Log[] = [];
-    const data: any = await d3.json('/db/id/8n7QpNtbh9maz3rZ');
+    //either /db/getall for every report
+    //or /db/id/*log code*
+    const data: any = await d3.json('/db/getall');
 
     const cards = [
       { id: 1001882, name: 'Balance' },
