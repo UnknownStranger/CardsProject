@@ -1,6 +1,7 @@
 import * as React from 'react';
 import './App.css';
 import * as d3 from 'd3';
+import { Button } from '@material-ui/core';
 
 function App() {
   interface Log {
@@ -127,8 +128,7 @@ function App() {
     raidMembers.sort((a, b) => (a.cardCount > b.cardCount ? -1 : 1));
     const max = raidMembers[0].cardCount;
     const width = 800 < window.innerWidth ? 800 : window.innerWidth;
-    const ratio = width / max;
-
+    
     const dimensions = {
       width: width,
       height: width * 0.6,
@@ -136,28 +136,37 @@ function App() {
         top: 30,
         right: 10,
         bottom: 50,
-        left: 50,
+        left: 100,
       },
       boundedWidth: 0,
       boundedHeight: 0,
     };
-
+    
     dimensions.boundedWidth =
-      dimensions.width - dimensions.margin.left - dimensions.margin.right;
+    dimensions.width - dimensions.margin.left - dimensions.margin.right;
     dimensions.boundedHeight =
-      dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
-
+    dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+    d3.select('#wrapper').selectChildren('svg').remove();
     const wrapper = d3
-      .select('#wrapper')
-      .append('svg')
-      .attr('width', dimensions.width)
-      .attr('height', dimensions.height);
+    .select('#wrapper')
+    .append('svg')
+    .attr('width', dimensions.width)
+    .attr('height', dimensions.height);
 
+    const ratio = dimensions.boundedWidth / max;
+    
     const y = d3
-      .scaleBand()
-      .domain(raidMembers.map((v, i) => v.nick))
-      .rangeRound([dimensions.margin.top, dimensions.height])
-      .padding(0.1);
+    .scaleBand()
+      .domain(raidMembers.map((v) => v.nick))
+      .rangeRound([0, dimensions.height])
+
+    const names = d3.axisLeft(y);
+
+    wrapper.append('g')
+    .attr('class', 'axis')
+    .attr('transform', `translate(${dimensions.margin.left}, 0)`)
+    .call(names)
+    .call(g => g.select('.domain').remove())
 
     wrapper
       .selectAll('bar')
@@ -165,6 +174,7 @@ function App() {
       .join('rect')
       .style('fill', (v) => v.color)
       .attr('class', 'bar')
+      .attr('x', dimensions.margin.left)
       .attr('width', (v) => v.cardCount * ratio)
       .attr('y', (v,i) => y.bandwidth() * i)
       .attr('height', y.bandwidth() * 0.9);
@@ -181,8 +191,11 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div id="wrapper"> </div>
-        <h1> Cards go brrrrrrr.</ h1>
+        <div className='left'>
+          <div id='wrapper'></div>
+          <h1> Cards go brrrrrrr.</ h1>
+          <Button variant='contained' color='primary' onClick={drawChart}>Redraw Graph</Button>
+        </div>
       </header>
     </div>
   );

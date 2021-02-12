@@ -83,7 +83,9 @@ export class AuthService {
     });
 
     for (let i = 0; i < this.reports.length - 1; i++) {
-      if(!this.databaseService.checkID('8n7QpNtbh9maz3rZ')){
+      console.log(`Checking log: ${this.reports[i].code}`);
+      console.log(`${i + 1}/ ${this.reports.length} complete`)
+      if(!(await this.databaseService.checkID(this.reports[i].code))){
         await this.fetchActors(this.reports[i].code);
       }
     }
@@ -115,6 +117,8 @@ export class AuthService {
     this.currentStatic = true;
     this.logID = code;
 
+    //temp stop for empty reports
+    if(x.data.reportData.report.fights.length < 1)return;
     const startTime = x.data.reportData.report.fights[0].startTime;
     const endTime =
       x.data.reportData.report.fights[
