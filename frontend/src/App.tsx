@@ -61,6 +61,7 @@ function App() {
     const raidMembersOverTime: typeof raidMembers[] = [];
     console.log(data.length);
     const cardsPerStep = 25;
+    const timing = 500;
     const raidMembers = [
       {
         name: 'Unknown Stranger',
@@ -138,10 +139,9 @@ function App() {
       }
       stepCount++;
     }
-    console.log(raidMembersOverTime);
 
-    const width = 800 < window.innerWidth ? 800 : window.innerWidth;
     //start chart setup
+    const width = 800 < window.innerWidth ? 800 : window.innerWidth;
     const dimensions = {
       width: width,
       height: width * 0.6,
@@ -167,10 +167,14 @@ function App() {
       .attr('height', dimensions.height);
     //end chart setup
 
-    const max = raidMembersOverTime[raidMembersOverTime.length -1][0].cardCount;
+    const max =
+      raidMembersOverTime[raidMembersOverTime.length - 1][0].cardCount;
     const ratio = dimensions.boundedWidth / max;
-    const timer = (waitTime: number) => new Promise(res => setTimeout(res, waitTime))
-    for(let i = 0; i < raidMembersOverTime.length; i++){
+
+    const timer = (waitTime: number) =>
+      new Promise((res) => setTimeout(res, waitTime));
+
+    for (let i = 0; i < raidMembersOverTime.length; i++) {
       let log = raidMembersOverTime[i];
       //start axis logic
       const y = d3
@@ -180,13 +184,15 @@ function App() {
 
       const names = d3.axisLeft(y);
 
+      wrapper.selectAll('g').remove();
+
       wrapper
         .append('g')
         .attr('class', 'axis')
         .attr('transform', `translate(${dimensions.margin.left}, 0)`)
-        .transition()
-        .duration(500)
         .call(names)
+        .transition()
+        .duration(timing)
         .call((g) => g.select('.domain').remove());
       //end axis logic
 
@@ -197,10 +203,10 @@ function App() {
         .join('rect')
         .style('fill', (v) => v.color)
         .attr('class', 'bar')
-        .attr('x', dimensions.width/2)
+        .attr('x', dimensions.width / 2)
         .attr('y', dimensions.height)
         .transition()
-        .duration(150)
+        .duration(100)
         .delay(function (d, i) {
           return i * 50;
         })
@@ -210,18 +216,8 @@ function App() {
         .attr('height', y.bandwidth() * 0.9);
       //end bar drawing logic
       //timeout for loop to animate
-      await timer(500);
-    };
-
-    console.log(raidMembersOverTime);
-    console.log(
-      d3.rollup(
-        data,
-        ([d]) => d.ability,
-        (d) => d.timestamp,
-        (d) => d.target
-      )
-    );
+      await timer(timing);
+    }
   }
 
   React.useEffect(() => {
