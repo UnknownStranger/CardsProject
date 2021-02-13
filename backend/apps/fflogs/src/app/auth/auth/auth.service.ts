@@ -16,6 +16,7 @@ export class AuthService {
 
   token: string;
   userID = 200950;
+  date: Date;
   logID: string;
   reports = [];
   events = [];
@@ -66,6 +67,7 @@ export class AuthService {
           reportData {
             reports(userID: ${this.userID}) {
               data {
+                startTime
                 code
                 zone {
                   name
@@ -86,6 +88,7 @@ export class AuthService {
       console.log(`Checking log: ${this.reports[i].code}`);
       console.log(`${i + 1}/ ${this.reports.length} complete`)
       if(!(await this.databaseService.checkID(this.reports[i].code))){
+        this.date = new Date(this.reports[i].startTime);
         await this.fetchActors(this.reports[i].code);
       }
     }
@@ -196,7 +199,8 @@ export class AuthService {
   }
 
   async finalize() {
-    const l = new Log(this.userID, this.logID, this.actors, this.events);
+    console.log(this.date);
+    const l = new Log(this.userID, this.date, this.logID, this.actors, this.events);
     await this.databaseService.create(l);
   }
 }

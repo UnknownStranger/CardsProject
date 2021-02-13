@@ -12,6 +12,9 @@ export class Logs {
   user: number;
 
   @Prop()
+  date: Date;
+
+  @Prop()
   logID: string;
 
   @Prop()
