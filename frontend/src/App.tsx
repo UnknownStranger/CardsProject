@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { Button } from '@material-ui/core';
 
 function App() {
-    interface Log {
+  interface Log {
     timestamp: number;
     ability: string;
     target: string;
@@ -110,25 +110,27 @@ function App() {
 
   async function firstPass() {
     const data = await logsData;
-    const cardsPerStep = 50;
-
+    const cardsPerStep = 10;
 
     for (let i = 0; i < Math.ceil(data.length / cardsPerStep); i++) {
-      let stepCount = 0;
+      let stepCount = i * cardsPerStep;
 
-      data.forEach((event) => {
-        raidMembers.forEach((m) => {
-          if (m.name === event.target) {
-            m.cardCount++;
-          }
-        });
-      });
+      for (; stepCount < i * cardsPerStep + cardsPerStep; stepCount++) {
+        const event = data[stepCount];
+        if (event) {
+          raidMembers.forEach((m) => {
+            if (m.name === event.target) {
+              m.cardCount++;
+            }
+          });
+        }
+      }
+
       if (stepCount % cardsPerStep === 0 || stepCount === data.length) {
         raidMembers.sort((a, b) => (a.cardCount > b.cardCount ? -1 : 1));
         const temp = _.cloneDeep(raidMembers);
         raidMembersOverTime.push(temp);
       }
-      stepCount++;
     }
 
     drawChart();
@@ -172,6 +174,7 @@ function App() {
 
     for (let i = 0; i < raidMembersOverTime.length; i++) {
       let log = raidMembersOverTime[i];
+      console.log(log);
       //start axis logic
       const y = d3
         .scaleBand()
@@ -193,22 +196,39 @@ function App() {
       //end axis logic
 
       //start bar drawing logic
+      wrapper.selectAll('rect').remove();
+      const cardHeight = 50;
+      const cardWidth = 30;
+
+      wrapper
+        .selectAll('card')
+        .data(log)
+        .join('rect')
+        .style('fill', (v) => v.color)
+        .attr('class', 'card')
+        .attr('class', (v) => v.name)
+        .attr('x', dimensions.width / 2 - cardWidth / 2)
+        .attr('y', dimensions.height + cardHeight / 2)
+        .attr('width', cardWidth)
+        .attr('height', cardHeight)
+        .transition()
+        .duration(100)
+        .delay(function (d, i) {
+          return i * 50;
+        })
+        .attr('x', (v) => v.cardCount * ratio + dimensions.margin.left)
+        .attr('y', (v, i) => y.bandwidth() * i)
+        .remove();
+
       wrapper
         .selectAll('bar')
         .data(log)
         .join('rect')
         .style('fill', (v) => v.color)
         .attr('class', 'bar')
-        .attr('x', dimensions.width / 2)
-        .attr('y', dimensions.height)
-        .transition()
-        .duration(100)
-        .delay(function (d, i) {
-          return i * 50;
-        })
         .attr('x', dimensions.margin.left)
-        .attr('width', (v) => v.cardCount * ratio)
         .attr('y', (v, i) => y.bandwidth() * i)
+        .attr('width', (v) => v.cardCount * ratio)
         .attr('height', y.bandwidth() * 0.9);
       //end bar drawing logic
       //timeout for loop to animate
