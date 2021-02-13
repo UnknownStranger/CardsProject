@@ -197,8 +197,8 @@ function App() {
 
       //start bar drawing logic
       wrapper.selectAll('rect').remove();
-      const cardHeight = 50;
-      const cardWidth = 30;
+      const cardHeight = y.bandwidth() * 0.8;
+      const cardWidth = cardHeight * 0.65;
 
       wrapper
         .selectAll('card')
