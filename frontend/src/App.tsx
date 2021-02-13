@@ -138,7 +138,6 @@ function App() {
       }
       stepCount++;
     }
-    console.log(raidMembersOverTime);
 
     const width = 800 < window.innerWidth ? 800 : window.innerWidth;
     //start chart setup
@@ -167,15 +166,28 @@ function App() {
       .attr('height', dimensions.height);
     //end chart setup
 
-    const max = raidMembersOverTime[raidMembersOverTime.length -1][0].cardCount;
+    const max =
+      raidMembersOverTime[raidMembersOverTime.length - 1][0].cardCount;
     const ratio = dimensions.boundedWidth / max;
-    const timer = (waitTime: number) => new Promise(res => setTimeout(res, waitTime))
-    for(let i = 0; i < raidMembersOverTime.length; i++){
-      let log = raidMembersOverTime[i];
+    const timer = (waitTime: number) =>
+      new Promise((res) => setTimeout(res, waitTime));
+
+    raidMembers.forEach(m => {
+      m.cardCount = 0;
+    });
+
+    for(let i = 0; i < data.length - 1; i++){
+      const event = data[i];
+      raidMembers.forEach((m) => {
+        if (m.name === event.target) {
+          m.cardCount++;
+        }
+      });
+
       //start axis logic
       const y = d3
         .scaleBand()
-        .domain(log.map((v) => v.nick))
+        .domain(raidMembers.map((v) => v.nick))
         .rangeRound([0, dimensions.height]);
 
       const names = d3.axisLeft(y);
@@ -185,7 +197,7 @@ function App() {
         .attr('class', 'axis')
         .attr('transform', `translate(${dimensions.margin.left}, 0)`)
         .transition()
-        .duration(500)
+        .duration(50)
         .call(names)
         .call((g) => g.select('.domain').remove());
       //end axis logic
@@ -193,11 +205,11 @@ function App() {
       //start bar drawing logic
       wrapper
         .selectAll('bar')
-        .data(log)
+        .data(raidMembers)
         .join('rect')
         .style('fill', (v) => v.color)
         .attr('class', 'bar')
-        .attr('x', dimensions.width/2)
+        .attr('x', dimensions.width / 2)
         .attr('y', dimensions.height)
         .transition()
         .duration(150)
@@ -210,18 +222,59 @@ function App() {
         .attr('height', y.bandwidth() * 0.9);
       //end bar drawing logic
       //timeout for loop to animate
-      await timer(500);
+      await timer(16);
     };
 
-    console.log(raidMembersOverTime);
-    console.log(
-      d3.rollup(
-        data,
-        ([d]) => d.ability,
-        (d) => d.timestamp,
-        (d) => d.target
-      )
+    // for(let i = 0; i < raidMembersOverTime.length; i++){
+    //   let log = raidMembersOverTime[i];
+    //   //start axis logic
+    //   const y = d3
+    //     .scaleBand()
+    //     .domain(log.map((v) => v.nick))
+    //     .rangeRound([0, dimensions.height]);
+
+    //   const names = d3.axisLeft(y);
+
+    //   wrapper
+    //     .append('g')
+    //     .attr('class', 'axis')
+    //     .attr('transform', `translate(${dimensions.margin.left}, 0)`)
+    //     .transition()
+    //     .duration(50)
+    //     .call(names)
+    //     .call((g) => g.select('.domain').remove());
+    //   //end axis logic
+
+    //   //start bar drawing logic
+    //   wrapper
+    //     .selectAll('bar')
+    //     .data(log)
+    //     .join('rect')
+    //     .style('fill', (v) => v.color)
+    //     .attr('class', 'bar')
+    //     .attr('x', dimensions.width/2)
+    //     .attr('y', dimensions.height)
+    //     .transition()
+    //     .duration(150)
+    //     .delay(function (d, i) {
+    //       return i * 50;
+    //     })
+    //     .attr('x', dimensions.margin.left)
+    //     .attr('width', (v) => v.cardCount * ratio)
+    //     .attr('y', (v, i) => y.bandwidth() * i)
+    //     .attr('height', y.bandwidth() * 0.9);
+    //   //end bar drawing logic
+    //   //timeout for loop to animate
+    //   await timer(50);
+    // };
+
+    let d = d3.rollup(
+      data,
+      ([d]) => d.ability,
+      (d) => d.timestamp,
+      (d) => d.target
     );
+    console.log(d);
   }
 
   React.useEffect(() => {
