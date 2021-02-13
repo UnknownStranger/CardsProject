@@ -17,6 +17,7 @@ function App() {
     //either /db/getall for every report
     //or /db/id/*log code*
     const data: any = await d3.json('/db/getall');
+    console.log(await data);
 
     const cards = [
       { id: 1001882, name: 'Balance' },
@@ -174,6 +175,9 @@ function App() {
       .join('rect')
       .style('fill', (v) => v.color)
       .attr('class', 'bar')
+      .transition()
+      .duration(1500)
+      .delay(function(d,i){return i*250})
       .attr('x', dimensions.margin.left)
       .attr('width', (v) => v.cardCount * ratio)
       .attr('y', (v,i) => y.bandwidth() * i)
