@@ -19,6 +19,9 @@
 .App .App-header Button {
   font-family: 'Nunito';
 }
+.domain {
+  stroke: none;
+}
 .axis {
   font-size: calc(24px);
   font-family: 'Nunito';

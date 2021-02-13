@@ -1,6 +1,7 @@
 import * as React from 'react';
 import './App.css';
 import * as d3 from 'd3';
+import _ from 'lodash';
 import { Button } from '@material-ui/core';
 
 function App() {
@@ -17,7 +18,6 @@ function App() {
     //either /db/getall for every report
     //or /db/id/*log code*
     const data: any = await d3.json('/db/getall');
-    console.log(await data);
 
     const cards = [
       { id: 1001882, name: 'Balance' },
@@ -58,6 +58,9 @@ function App() {
 
   async function drawChart() {
     const data = await logsData;
+    const raidMembersOverTime: typeof raidMembers[] = [];
+    console.log(data.length);
+    const cardsPerStep = 25;
     const raidMembers = [
       {
         name: 'Unknown Stranger',
@@ -117,19 +120,28 @@ function App() {
       },
     ];
 
-    data.forEach((event) => {
-      raidMembers.forEach((m) => {
-        if (m.name === event.target) {
-          m.events.push(event);
-          m.cardCount++;
-        }
-      });
-    });
+    for (let i = 0; i < Math.ceil(data.length / cardsPerStep); i++) {
+      let stepCount = 0;
 
-    raidMembers.sort((a, b) => (a.cardCount > b.cardCount ? -1 : 1));
-    const max = raidMembers[0].cardCount;
+      data.forEach((event) => {
+        raidMembers.forEach((m) => {
+          if (m.name === event.target) {
+            m.events.push(event);
+            m.cardCount++;
+          }
+        });
+      });
+      if (stepCount % cardsPerStep === 0 || stepCount === data.length) {
+        raidMembers.sort((a, b) => (a.cardCount > b.cardCount ? -1 : 1));
+        const temp = _.cloneDeep(raidMembers);
+        raidMembersOverTime.push(temp);
+      }
+      stepCount++;
+    }
+    console.log(raidMembersOverTime);
+
     const width = 800 < window.innerWidth ? 800 : window.innerWidth;
-    
+    //start chart setup
     const dimensions = {
       width: width,
       height: width * 0.6,
@@ -142,50 +154,74 @@ function App() {
       boundedWidth: 0,
       boundedHeight: 0,
     };
-    
+
     dimensions.boundedWidth =
-    dimensions.width - dimensions.margin.left - dimensions.margin.right;
+      dimensions.width - dimensions.margin.left - dimensions.margin.right;
     dimensions.boundedHeight =
-    dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+      dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
     d3.select('#wrapper').selectChildren('svg').remove();
     const wrapper = d3
-    .select('#wrapper')
-    .append('svg')
-    .attr('width', dimensions.width)
-    .attr('height', dimensions.height);
+      .select('#wrapper')
+      .append('svg')
+      .attr('width', dimensions.width)
+      .attr('height', dimensions.height);
+    //end chart setup
 
+    const max = raidMembersOverTime[raidMembersOverTime.length -1][0].cardCount;
     const ratio = dimensions.boundedWidth / max;
-    
-    const y = d3
-    .scaleBand()
-      .domain(raidMembers.map((v) => v.nick))
-      .rangeRound([0, dimensions.height])
+    const timer = (waitTime: number) => new Promise(res => setTimeout(res, waitTime))
+    for(let i = 0; i < raidMembersOverTime.length; i++){
+      let log = raidMembersOverTime[i];
+      //start axis logic
+      const y = d3
+        .scaleBand()
+        .domain(log.map((v) => v.nick))
+        .rangeRound([0, dimensions.height]);
 
-    const names = d3.axisLeft(y);
+      const names = d3.axisLeft(y);
 
-    wrapper.append('g')
-    .attr('class', 'axis')
-    .attr('transform', `translate(${dimensions.margin.left}, 0)`)
-    .call(names)
-    .call(g => g.select('.domain').remove())
+      wrapper
+        .append('g')
+        .attr('class', 'axis')
+        .attr('transform', `translate(${dimensions.margin.left}, 0)`)
+        .transition()
+        .duration(500)
+        .call(names)
+        .call((g) => g.select('.domain').remove());
+      //end axis logic
 
-    wrapper
-      .selectAll('bar')
-      .data(raidMembers)
-      .join('rect')
-      .style('fill', (v) => v.color)
-      .attr('class', 'bar')
-      .transition()
-      .duration(1500)
-      .delay(function(d,i){return i*250})
-      .attr('x', dimensions.margin.left)
-      .attr('width', (v) => v.cardCount * ratio)
-      .attr('y', (v,i) => y.bandwidth() * i)
-      .attr('height', y.bandwidth() * 0.9);
+      //start bar drawing logic
+      wrapper
+        .selectAll('bar')
+        .data(log)
+        .join('rect')
+        .style('fill', (v) => v.color)
+        .attr('class', 'bar')
+        .attr('x', dimensions.width/2)
+        .attr('y', dimensions.height)
+        .transition()
+        .duration(150)
+        .delay(function (d, i) {
+          return i * 50;
+        })
+        .attr('x', dimensions.margin.left)
+        .attr('width', (v) => v.cardCount * ratio)
+        .attr('y', (v, i) => y.bandwidth() * i)
+        .attr('height', y.bandwidth() * 0.9);
+      //end bar drawing logic
+      //timeout for loop to animate
+      await timer(500);
+    };
 
-    console.log(raidMembers);
-    console.log(d3.rollup(data, ([d]) => d.ability, d => d.timestamp, d => d.target));
-    
+    console.log(raidMembersOverTime);
+    console.log(
+      d3.rollup(
+        data,
+        ([d]) => d.ability,
+        (d) => d.timestamp,
+        (d) => d.target
+      )
+    );
   }
 
   React.useEffect(() => {
@@ -195,10 +231,12 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <div className='left'>
-          <div id='wrapper'></div>
-          <h1> Cards go brrrrrrr.</ h1>
-          <Button variant='contained' color='primary' onClick={drawChart}>Redraw Graph</Button>
+        <div className="left">
+          <div id="wrapper"></div>
+          <h1> Cards go brrrrrrr.</h1>
+          <Button variant="contained" color="primary" onClick={drawChart}>
+            Redraw Graph
+          </Button>
         </div>
       </header>
     </div>
