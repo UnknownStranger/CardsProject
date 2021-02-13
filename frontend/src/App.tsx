@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { Button } from '@material-ui/core';
 
 function App() {
-  interface Log {
+    interface Log {
     timestamp: number;
     ability: string;
     target: string;
@@ -56,70 +56,62 @@ function App() {
     return parsedLogs;
   }
 
-  async function drawChart() {
+  const raidMembers = [
+    {
+      name: 'Unknown Stranger',
+      color: 'rgb(193, 140, 0)',
+      cardCount: 0,
+      nick: 'Unkle',
+    },
+    {
+      name: 'Spooky Smile',
+      color: 'rgb(132, 169, 87)',
+      cardCount: 0,
+      nick: 'Spooks',
+    },
+    {
+      name: "Mikan A'malus",
+      color: 'rgb(157, 22, 90)',
+      cardCount: 0,
+      nick: 'Mikan',
+    },
+    {
+      name: 'Akuma Rayne',
+      color: 'rgb(211, 113, 113)',
+      cardCount: 0,
+      nick: 'Rayne',
+    },
+    {
+      name: "Pyne A'malus",
+      color: 'rgb(109, 98, 43)',
+      cardCount: 0,
+      nick: 'Pyne',
+    },
+    {
+      name: "Syn Wy'verian",
+      color: 'rgb(231, 218, 200)',
+      cardCount: 0,
+      nick: 'Syn',
+    },
+    {
+      name: 'Izaya Yukimura',
+      color: 'rgb(188, 34, 184)',
+      cardCount: 0,
+      nick: 'Izzy',
+    },
+    {
+      name: "Carter Wy'verian",
+      color: 'rgb(231, 210, 69)',
+      cardCount: 0,
+      nick: 'Carter',
+    },
+  ];
+  const raidMembersOverTime: typeof raidMembers[] = [];
+
+  async function firstPass() {
     const data = await logsData;
-    const raidMembersOverTime: typeof raidMembers[] = [];
-    console.log(data.length);
-    const cardsPerStep = 25;
-    const timing = 500;
-    const raidMembers = [
-      {
-        name: 'Unknown Stranger',
-        color: 'rgb(193, 140, 0)',
-        cardCount: 0,
-        nick: 'Unkle',
-        events: [] as Log[],
-      },
-      {
-        name: 'Spooky Smile',
-        color: 'rgb(132, 169, 87)',
-        cardCount: 0,
-        nick: 'Spooks',
-        events: [] as Log[],
-      },
-      {
-        name: "Mikan A'malus",
-        color: 'rgb(157, 22, 90)',
-        cardCount: 0,
-        nick: 'Mikan',
-        events: [] as Log[],
-      },
-      {
-        name: 'Akuma Rayne',
-        color: 'rgb(211, 113, 113)',
-        cardCount: 0,
-        nick: 'Rayne',
-        events: [] as Log[],
-      },
-      {
-        name: "Pyne A'malus",
-        color: 'rgb(109, 98, 43)',
-        cardCount: 0,
-        nick: 'Pyne',
-        events: [] as Log[],
-      },
-      {
-        name: "Syn Wy'verian",
-        color: 'rgb(231, 218, 200)',
-        cardCount: 0,
-        nick: 'Syn',
-        events: [] as Log[],
-      },
-      {
-        name: 'Izaya Yukimura',
-        color: 'rgb(188, 34, 184)',
-        cardCount: 0,
-        nick: 'Izzy',
-        events: [] as Log[],
-      },
-      {
-        name: "Carter Wy'verian",
-        color: 'rgb(231, 210, 69)',
-        cardCount: 0,
-        nick: 'Carter',
-        events: [] as Log[],
-      },
-    ];
+    const cardsPerStep = 50;
+
 
     for (let i = 0; i < Math.ceil(data.length / cardsPerStep); i++) {
       let stepCount = 0;
@@ -127,7 +119,6 @@ function App() {
       data.forEach((event) => {
         raidMembers.forEach((m) => {
           if (m.name === event.target) {
-            m.events.push(event);
             m.cardCount++;
           }
         });
@@ -140,6 +131,11 @@ function App() {
       stepCount++;
     }
 
+    drawChart();
+  }
+
+  async function drawChart() {
+    const timing = 500;
     //start chart setup
     const width = 800 < window.innerWidth ? 800 : window.innerWidth;
     const dimensions = {
@@ -221,7 +217,7 @@ function App() {
   }
 
   React.useEffect(() => {
-    drawChart();
+    firstPass();
   });
 
   return (
