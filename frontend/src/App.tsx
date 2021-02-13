@@ -110,7 +110,7 @@ function App() {
 
   async function firstPass() {
     const data = await logsData;
-    const cardsPerStep = 10;
+    const cardsPerStep = Math.floor(data.length/60);
 
     for (let i = 0; i < Math.ceil(data.length / cardsPerStep); i++) {
       let stepCount = i * cardsPerStep;
@@ -165,6 +165,8 @@ function App() {
       .attr('height', dimensions.height);
     //end chart setup
 
+    console.log(raidMembersOverTime);
+
     const max =
       raidMembersOverTime[raidMembersOverTime.length - 1][0].cardCount;
     const ratio = dimensions.boundedWidth / max;
@@ -174,7 +176,6 @@ function App() {
 
     for (let i = 0; i < raidMembersOverTime.length; i++) {
       let log = raidMembersOverTime[i];
-      console.log(log);
       //start axis logic
       const y = d3
         .scaleBand()
@@ -206,7 +207,6 @@ function App() {
         .join('rect')
         .style('fill', (v) => v.color)
         .attr('class', 'card')
-        .attr('class', (v) => v.name)
         .attr('x', dimensions.width / 2 - cardWidth / 2)
         .attr('y', dimensions.height + cardHeight / 2)
         .attr('width', cardWidth)
@@ -226,8 +226,8 @@ function App() {
         .join('rect')
         .style('fill', (v) => v.color)
         .attr('class', 'bar')
-        .attr('x', dimensions.margin.left)
         .attr('y', (v, i) => y.bandwidth() * i)
+        .attr('x', dimensions.margin.left)
         .attr('width', (v) => v.cardCount * ratio)
         .attr('height', y.bandwidth() * 0.9);
       //end bar drawing logic
