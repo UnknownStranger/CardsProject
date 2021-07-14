@@ -1,5 +1,7 @@
+version: "3.3"
+
 services: 
-  card-backend:
+  cardbackend:
     build:
       context: .
       target: runner
