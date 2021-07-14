@@ -4,7 +4,6 @@ services:
   cardbackend:
     build:
       context: .
-      target: runner
     volumes:
       - .:/usr/src/app/run
       - notused:/usr/src/app/run/node_modules

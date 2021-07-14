@@ -1,4 +1,4 @@
-FROM node:14-buster AS base
+FROM node:14-buster
 
 WORKDIR /usr/src/app
 
@@ -9,10 +9,6 @@ COPY --chown=node:node package.json ./
 COPY --chown=node:node yarn.lock ./
 
 RUN yarn install
-
-FROM base AS runner
-
-USER node
 
 WORKDIR /usr/src/app/run
 CMD ["nx", "serve"]
